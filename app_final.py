@@ -43,8 +43,8 @@ with tab_search:
     if query:
         results = engine.search(query, top_n=top_n)
         
-    st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
-    st.divider()
+        st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
+        st.divider()
 
     if results:
         for i, page in enumerate(results, 1):
