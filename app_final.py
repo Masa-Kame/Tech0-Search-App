@@ -40,42 +40,42 @@ with tab_search:
     with col_options:
         top_n = st.selectbox("表示件数", [10, 20, 50], index=0)
 
-    if query:
-        results = engine.search(query, top_n=top_n)
-        
-        st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
-        st.divider()
+        if query:
+            results = engine.search(query, top_n=top_n)
+            
+            st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
+            st.divider()
 
-    if results:
-        for i, page in enumerate(results, 1):
-            with st.container():
-                col_rank, col_title, col_score = st.columns([0.5, 4, 1])
-                with col_rank:
-                    medal = ["🥇", "🥈", "🥉"][i - 1] if i <= 3 else str(i)
-                    st.markdown(f"### {medal}")
-                with col_title:
-                    st.markdown(f"### {page['title']}")
-                with col_score:
-                    st.metric("スコア", f"{page['relevance_score']})", delta=f"基準: {page['base_score']}")
+        if results:
+            for i, page in enumerate(results, 1):
+                with st.container():
+                    col_rank, col_title, col_score = st.columns([0.5, 4, 1])
+                    with col_rank:
+                        medal = ["🥇", "🥈", "🥉"][i - 1] if i <= 3 else str(i)
+                        st.markdown(f"### {medal}")
+                    with col_title:
+                        st.markdown(f"### {page['title']}")
+                    with col_score:
+                        st.metric("スコア", f"{page['relevance_score']})", delta=f"基準: {page['base_score']}")
 
-                desc = page.get("description", "")
-                if desc:
-                    st.markdown(f"*{desc[:200]}{'...' if len(desc) > 200 else ''}*")
+                    desc = page.get("description", "")
+                    if desc:
+                        st.markdown(f"*{desc[:200]}{'...' if len(desc) > 200 else ''}*")
 
-                kw = page.get("keywords", "") or ""
-                if kw:
-                    kw_list = [k.strip() for k in kw.split(",")] if isinstance(kw, str) else list(kw)
-                    tags = " ".join([f"`{k}`" for k in kw_list[:5] if k])
-                    st.markdown(f"🏷️ {tags}")
+                    kw = page.get("keywords", "") or ""
+                    if kw:
+                        kw_list = [k.strip() for k in kw.split(",")] if isinstance(kw, str) else list(kw)
+                        tags = " ".join([f"`{k}`" for k in kw_list[:5] if k])
+                        st.markdown(f"🏷️ {tags}")
 
-                col1, col2, col3, col4, = st.columns(4)
-                with col1: st.caption(f"👤 {page.get('author', '不明') or '不明'}")
-                with col2: st.caption(f"📊 {page.get('word_count', 0)} 語")
-                with col3: st.caption(f"📁 {page.get('category', '未分類') or '未分類'}")
-                with col4: st.caption(f"📅 {(page.get('crawled_at', '') or '')[:10]}")
+                    col1, col2, col3, col4, = st.columns(4)
+                    with col1: st.caption(f"👤 {page.get('author', '不明') or '不明'}")
+                    with col2: st.caption(f"📊 {page.get('word_count', 0)} 語")
+                    with col3: st.caption(f"📁 {page.get('category', '未分類') or '未分類'}")
+                    with col4: st.caption(f"📅 {(page.get('crawled_at', '') or '')[:10]}")
 
-                st.markdown(f"🔗 [{page['url']}]({page['url']})")
-                st.divider()
+                    st.markdown(f"🔗 [{page['url']}]({page['url']})")
+                    st.divider()
         else:
             st.info("該当するベースが見つかりませんでした")
 
