@@ -46,6 +46,8 @@ with tab_search:
             st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
             st.divider()
 
+        results = []
+
         if results:
             for i, page in enumerate(results, 1):
                 with st.container():
