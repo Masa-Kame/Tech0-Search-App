@@ -1,6 +1,5 @@
 import streamlit as st
 from database_final import init_db, insert_page, get_all_pages, migrate_from_json
-from search_final import search_fulltext
 from crawler_final import crawl_url
 from ranking_final import get_engine, rebuild_index 
 
