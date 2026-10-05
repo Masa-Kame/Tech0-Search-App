@@ -1,10 +1,13 @@
 import re
 import streamlit as st
-from database_final import init_db, get_all_pages, insert_page, log_search
+from database_final import init_db, get_all_pages, insert_page, log_search, migrate_from_json
 from ranking_final import get_engine, rebuild_index
 from crawler_final import crawl_url
 
 init_db()
+
+if not get_all_pages():
+    migrate_from_json()
 
 st.set_page_config(page_title='Tech0 Search V1.0', page_icon="🔍", layout="wide")
 
@@ -40,46 +43,46 @@ with tab_search:
     with col_options:
         top_n = st.selectbox("表示件数", [10, 20, 50], index=0)
 
-        if query:
-            results = engine.search(query, top_n=top_n)
+    results = []
+
+    if query:
+        results = engine.search(query, top_n=top_n)
             
-            st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
-            st.divider()
+        st.markdown(f"**📊 検索結果：{len(results)} 件**（TF-IDFスコア順）")
+        st.divider()
 
-        results = []
+    if results:
+        for i, page in enumerate(results, 1):
+            with st.container():
+                col_rank, col_title, col_score = st.columns([0.5, 4, 1])
+                with col_rank:
+                    medal = ["🥇", "🥈", "🥉"][i - 1] if i <= 3 else str(i)
+                    st.markdown(f"### {medal}")
+                with col_title:
+                    st.markdown(f"### {page['title']}")
+                with col_score:
+                    st.metric("スコア", f"{page['relevance_score']})", delta=f"基準: {page['base_score']}")
 
-        if results:
-            for i, page in enumerate(results, 1):
-                with st.container():
-                    col_rank, col_title, col_score = st.columns([0.5, 4, 1])
-                    with col_rank:
-                        medal = ["🥇", "🥈", "🥉"][i - 1] if i <= 3 else str(i)
-                        st.markdown(f"### {medal}")
-                    with col_title:
-                        st.markdown(f"### {page['title']}")
-                    with col_score:
-                        st.metric("スコア", f"{page['relevance_score']})", delta=f"基準: {page['base_score']}")
+                desc = page.get("description", "")
+                if desc:
+                    st.markdown(f"*{desc[:200]}{'...' if len(desc) > 200 else ''}*")
 
-                    desc = page.get("description", "")
-                    if desc:
-                        st.markdown(f"*{desc[:200]}{'...' if len(desc) > 200 else ''}*")
+                kw = page.get("keywords", "") or ""
+                if kw:
+                    kw_list = [k.strip() for k in kw.split(",")] if isinstance(kw, str) else list(kw)
+                    tags = " ".join([f"`{k}`" for k in kw_list[:5] if k])
+                    st.markdown(f"🏷️ {tags}")
 
-                    kw = page.get("keywords", "") or ""
-                    if kw:
-                        kw_list = [k.strip() for k in kw.split(",")] if isinstance(kw, str) else list(kw)
-                        tags = " ".join([f"`{k}`" for k in kw_list[:5] if k])
-                        st.markdown(f"🏷️ {tags}")
+                col1, col2, col3, col4, = st.columns(4)
+                with col1: st.caption(f"👤 {page.get('author', '不明') or '不明'}")
+                with col2: st.caption(f"📊 {page.get('word_count', 0)} 語")
+                with col3: st.caption(f"📁 {page.get('category', '未分類') or '未分類'}")
+                with col4: st.caption(f"📅 {(page.get('crawled_at', '') or '')[:10]}")
 
-                    col1, col2, col3, col4, = st.columns(4)
-                    with col1: st.caption(f"👤 {page.get('author', '不明') or '不明'}")
-                    with col2: st.caption(f"📊 {page.get('word_count', 0)} 語")
-                    with col3: st.caption(f"📁 {page.get('category', '未分類') or '未分類'}")
-                    with col4: st.caption(f"📅 {(page.get('crawled_at', '') or '')[:10]}")
-
-                    st.markdown(f"🔗 [{page['url']}]({page['url']})")
-                    st.divider()
-        else:
-            st.info("該当するベースが見つかりませんでした")
+                st.markdown(f"🔗 [{page['url']}]({page['url']})")
+                st.divider()
+    else:
+        st.info("該当するベースが見つかりませんでした")
 
 if "crawl_results" not in st.session_state:
     st.session_state.crawl_results = []
@@ -139,8 +142,8 @@ with tab_crawl:
                             progress_bar.progress(i / total)
 
                         st.session_state["registered_count"] = total
-                        st.session_state.crawl_resutls = []
-                        st.cache_resouce.clear()
+                        st.session_state.crawl_results = []
+                        st.cache_resource.clear()
                         st.rerun()
 
 with tab_list:
