@@ -65,7 +65,7 @@ with tab_search:
 
                 desc = page.get("description", "")
                 if desc:
-                    st.markdown(f"*{desc[:200]}{'...' if len(desc) > 200 else ''}*")
+                        st.markdown(f"*{desc[:200]}{'...' if len(desc) > 200 else ''}*")
 
                 kw = page.get("keywords", "") or ""
                 if kw:
@@ -128,23 +128,23 @@ with tab_crawl:
                     else:
                         st.error(f"❌ 失敗: {url}")
 
-                if st.session_state.crawl_results:
-                    st.info(f"{len(st.session_state.crawl_results)}件のクロール結果を登録できます。")
+    if st.session_state.crawl_results:
+        st.info(f"{len(st.session_state.crawl_results)}件のクロール結果を登録できます。")
 
-                    if st.button("💾 全てインデックスに登録"):
-                        total = len(st.session_state.crawl_results)
-                        progress_text = st.empty()
-                        progress_bar = st.progress(0)
+        if st.button("💾 全てインデックスに登録"):
+            total = len(st.session_state.crawl_results)
+            progress_text = st.empty()
+            progress_bar = st.progress(0)
 
-                        for i, r in enumerate(st.session_state.crawl_results, start=1):
-                            progress_text.write(f"📥 {i} / {total} 件登録中...")
-                            insert_page(r)
-                            progress_bar.progress(i / total)
+            for i, r in enumerate(st.session_state.crawl_results, start=1):
+                progress_text.write(f"📥 {i} / {total} 件登録中...")
+                insert_page(r)
+                progress_bar.progress(i / total)
 
-                        st.session_state["registered_count"] = total
-                        st.session_state.crawl_results = []
-                        st.cache_resource.clear()
-                        st.rerun()
+            st.session_state["registered_count"] = total
+            st.session_state.crawl_results = []
+            st.cache_resource.clear()
+            st.rerun()
 
 with tab_list:
     st.subheader(f"📋 登録済みページ一覧（{len(pages)} 件）")
